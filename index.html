@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大学生学业&竞赛规划助手 · 软件Demo</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; }
+  body {
+    font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+    background:#f4f8fc; color:#1e293b; font-size:14px; overflow:hidden;
+  }
+  .app { display:flex; flex-direction:column; height:100vh; max-width:1440px; margin:0 auto; }
+
+  /* ===== 顶栏 ===== */
+  .topbar { height:58px; background:#fff; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; padding:0 20px; flex-shrink:0; }
+  .brand { display:flex; align-items:center; gap:12px; }
+  .logo { width:38px; height:38px; border-radius:11px; background:linear-gradient(135deg,#3b82f6,#60a5fa); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:17px; box-shadow:0 3px 10px rgba(59,130,246,.3); }
+  .agent-name { font-size:16px; font-weight:700; letter-spacing:.5px; }
+  .agent-sub { font-size:12px; color:#64748b; margin-top:1px; }
+  .top-right { display:flex; align-items:center; gap:10px; }
+  .badge-live { font-size:12px; color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; padding:3px 10px; border-radius:99px; font-weight:600; }
+  .btn-ghost { border:1px solid #cbd5e1; background:#fff; color:#475569; font-size:12.5px; padding:6px 14px; border-radius:9px; cursor:pointer; transition:.15s; }
+  .btn-ghost:hover { border-color:#3b82f6; color:#1d4ed8; background:#eff6ff; }
+
+  /* ===== 主体 ===== */
+  .main { flex:1; display:flex; min-height:0; }
+
+  /* ===== 侧栏 ===== */
+  .sidebar { width:300px; background:#fff; border-right:1px solid #e2e8f0; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:13px; flex-shrink:0; }
+  .sidebar::-webkit-scrollbar, .messages::-webkit-scrollbar { width:6px; }
+  .sidebar::-webkit-scrollbar-thumb, .messages::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:99px; }
+  .panel { background:#f8fafc; border:1px solid #e2e8f0; border-radius:13px; padding:12px 13px; }
+  .panel h3 { font-size:13px; color:#0f172a; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; font-weight:700; }
+  .tag { font-size:11px; padding:2px 8px; border-radius:99px; background:#dbeafe; color:#1d4ed8; font-weight:600; white-space:nowrap; }
+  .tag-green { background:#dcfce7; color:#15803d; }
+
+  .profile-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .p-item { background:#fff; border:1px solid #e2e8f0; border-radius:9px; padding:6px 9px; min-height:46px; }
+  .p-item label { display:block; font-size:10.5px; color:#94a3b8; margin-bottom:1px; }
+  .p-item span { font-size:12.5px; font-weight:600; color:#1e293b; word-break:break-all; }
+  .p-item span.empty { color:#cbd5e1; font-weight:400; }
+  .p-item.wide { grid-column:span 2; }
+  .btn-mini { border:none; background:none; color:#3b82f6; font-size:11.5px; cursor:pointer; padding:2px 4px; font-weight:600; }
+  .btn-mini:hover { text-decoration:underline; }
+
+  .qbtn { display:block; width:100%; text-align:left; background:#fff; border:1px solid #dbeafe; border-radius:9px; padding:7px 10px; font-size:12.5px; color:#1e40af; cursor:pointer; margin-bottom:7px; line-height:1.45; font-family:inherit; transition:.15s; }
+  .qbtn:last-child { margin-bottom:0; }
+  .qbtn:hover { background:#eff6ff; border-color:#93c5fd; transform:translateX(2px); }
+  .qbtn .qlabel { color:#94a3b8; font-size:11px; margin-right:5px; }
+
+  .kb-list { list-style:none; }
+  .kb-list li { font-size:12px; color:#475569; padding:5px 0 5px 22px; position:relative; border-bottom:1px dashed #eef2f7; }
+  .kb-list li:last-child { border-bottom:none; }
+  .kb-list li::before { content:'📄'; position:absolute; left:0; font-size:11px; top:5px; }
+  .kb-list li em { font-style:normal; color:#15803d; font-size:11px; float:right; }
+
+  .side-foot { font-size:11px; color:#94a3b8; text-align:center; padding:6px 0 2px; line-height:1.7; }
+
+  /* ===== 聊天区 ===== */
+  .chat { flex:1; display:flex; flex-direction:column; min-width:0; }
+  .messages { flex:1; overflow-y:auto; padding:22px 28px 12px; }
+  .msg { display:flex; gap:10px; margin-bottom:16px; }
+  .msg.user { flex-direction:row-reverse; }
+  .avatar { width:34px; height:34px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; }
+  .avatar.bot { background:linear-gradient(135deg,#3b82f6,#60a5fa); color:#fff; }
+  .avatar.user { background:#e2e8f0; color:#475569; }
+  .bubble-wrap { max-width:78%; display:flex; flex-direction:column; }
+  .msg.user .bubble-wrap { align-items:flex-end; }
+  .bubble { padding:10px 15px; border-radius:14px; line-height:1.7; font-size:14px; word-break:break-word; }
+  .msg.user .bubble { background:linear-gradient(135deg,#3b82f6,#2563eb); color:#fff; border-bottom-right-radius:4px; }
+  .msg.assistant .bubble { background:#fff; border:1px solid #e2e8f0; border-bottom-left-radius:4px; box-shadow:0 1px 3px rgba(30,64,175,.06); }
+  .bubble b { color:#1d4ed8; }
+  .msg.user .bubble b { color:#fff; }
+  .bubble .dim { color:#64748b; font-size:12.5px; }
+
+  .msg.system { justify-content:center; margin:10px 0 14px; }
+  .sysnote { font-size:12px; color:#64748b; background:rgba(255,255,255,.72); backdrop-filter:blur(6px); border:1px dashed #cbd5e1; padding:4px 14px; border-radius:99px; }
+  .sysnote b { color:#1d4ed8; }
+
+  .refs { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+  .ref-chip { font-size:11px; background:#eff6ff; color:#1d4ed8; border:1px solid #dbeafe; padding:2px 9px; border-radius:99px; }
+
+  /* 推荐卡片 */
+  .rec { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:8px 12px; margin:8px 0; }
+  .rec-head { display:flex; align-items:center; gap:8px; margin-bottom:3px; flex-wrap:wrap; }
+  .rec-num { width:20px; height:20px; border-radius:6px; background:#3b82f6; color:#fff; font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .rec-tag { font-size:11px; padding:1px 8px; border-radius:99px; font-weight:600; }
+  .rec-tag.open { background:#dcfce7; color:#15803d; }
+  .rec-tag.plan { background:#f1f5f9; color:#64748b; }
+  .rec-when { font-size:12.5px; color:#2563eb; margin-top:3px; }
+  .rec-act { font-size:12.5px; color:#475569; margin-top:2px; }
+  .rec-why { font-size:13px; }
+
+  .note-box { background:#fffbeb; border:1px solid #fde68a; border-radius:9px; padding:6px 11px; font-size:12.5px; color:#92400e; margin-top:8px; }
+
+  /* 打字中 */
+  .typing { display:flex; gap:4px; padding:6px 2px; }
+  .typing span { width:7px; height:7px; background:#93c5fd; border-radius:50%; animation:blink 1.2s infinite; }
+  .typing span:nth-child(2) { animation-delay:.2s; }
+  .typing span:nth-child(3) { animation-delay:.4s; }
+  @keyframes blink { 0%,80%,100%{opacity:.25} 40%{opacity:1} }
+
+  /* 输入区 */
+  .composer { padding:12px 24px 18px; display:flex; gap:10px; flex-shrink:0; }
+  .composer input { flex:1; border:1px solid #cbd5e1; border-radius:12px; padding:11px 17px; font-size:14px; outline:none; background:#fff; font-family:inherit; transition:.15s; }
+  .composer input:focus { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+  .composer button { background:linear-gradient(135deg,#3b82f6,#2563eb); color:#fff; border:none; border-radius:12px; padding:0 24px; font-size:14px; cursor:pointer; font-weight:600; font-family:inherit; box-shadow:0 3px 10px rgba(59,130,246,.3); }
+  .composer button:disabled { opacity:.55; cursor:not-allowed; }
+
+  /* 毛玻璃弹窗 */
+  .modal-mask { position:fixed; inset:0; background:rgba(30,58,138,.28); display:none; align-items:center; justify-content:center; z-index:50; }
+  .modal-mask.show { display:flex; }
+  .modal { background:rgba(255,255,255,.9); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,.95); border-radius:16px; padding:22px 24px; width:420px; max-width:92vw; box-shadow:0 20px 60px rgba(30,64,175,.25); max-height:86vh; overflow-y:auto; }
+  .modal h2 { font-size:16px; margin-bottom:14px; color:#0f172a; }
+  .modal label { display:block; font-size:12px; color:#64748b; margin:10px 0 4px; font-weight:600; }
+  .modal select, .modal input[type=text] { width:100%; padding:8px 11px; border:1px solid #cbd5e1; border-radius:9px; font-size:13px; font-family:inherit; outline:none; background:#fff; }
+  .modal select:focus, .modal input[type=text]:focus { border-color:#3b82f6; }
+  .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:18px; }
+  .btn-primary { background:linear-gradient(135deg,#3b82f6,#2563eb); color:#fff; border:none; border-radius:9px; padding:8px 20px; font-size:13px; cursor:pointer; font-weight:600; font-family:inherit; }
+  .btn-plain { background:#f1f5f9; color:#475569; border:none; border-radius:9px; padding:8px 16px; font-size:13px; cursor:pointer; font-family:inherit; }
+  .modal p { font-size:13px; color:#475569; line-height:1.75; margin-bottom:8px; }
+  .modal p b { color:#1d4ed8; }
+
+  @media (max-width:920px) {
+    .sidebar { display:none; }
+    .bubble-wrap { max-width:92%; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 顶栏 -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">学</div>
+      <div>
+        <div class="agent-name">大学生学业&竞赛规划助手</div>
+        <div class="agent-sub">星辰超级智能体 TeleAgent · 技能：college-study-competition-planner</div>
+      </div>
+    </div>
+    <div class="top-right">
+      <span class="badge-live">● 在线</span>
+      <button class="btn-ghost" id="btnAbout">关于 Demo</button>
+      <button class="btn-ghost" id="btnReset">重置对话</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <!-- 侧栏 -->
+    <aside class="sidebar">
+      <section class="panel">
+        <h3>学生画像 <span style="display:flex;gap:6px;align-items:center;"><span class="tag">多轮记忆</span><button class="btn-mini" id="btnEditProfile">✎ 编辑</button></span></h3>
+        <div class="profile-grid">
+          <div class="p-item"><label>年级</label><span id="pGrade" class="empty">待补充</span></div>
+          <div class="p-item"><label>专业</label><span id="pMajor" class="empty">待补充</span></div>
+          <div class="p-item"><label>每周可投入</label><span id="pHours" class="empty">待补充</span></div>
+          <div class="p-item"><label>特长</label><span id="pStrength" class="empty">待补充</span></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>演示提问 <span class="tag">测试用例</span></h3>
+        <div id="quickList"></div>
+      </section>
+
+      <section class="panel">
+        <h3>知识库 <span class="tag tag-green">已挂载 · RAG</span></h3>
+        <ul class="kb-list">
+          <li>01-主流大学生竞赛信息汇总<em>8赛事</em></li>
+          <li>02-竞赛配套模板库<em>60问答辩</em></li>
+          <li>03-学业备考资料包<em>四六级·二级</em></li>
+          <li>04-高频问答样例库<em>20个样例</em></li>
+        </ul>
+      </section>
+
+      <div class="side-foot">演示版 · 离线运行 · 双击即用<br>正式版基于 TeleAgent 技能机制</div>
+    </aside>
+
+    <!-- 聊天区 -->
+    <section class="chat">
+      <div class="messages" id="messages"></div>
+      <div class="composer">
+        <input id="input" type="text" placeholder="输入你的情况或问题，如：我是计算机专业大一，每周能挤6小时，推荐什么比赛？">
+        <button id="btnSend">发 送</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- 画像编辑弹窗（毛玻璃） -->
+<div class="modal-mask" id="profileModal">
+  <div class="modal">
+    <h2>编辑学生画像</h2>
+    <label>年级</label>
+    <select id="selGrade">
+      <option value="">未设置</option>
+      <option>大一</option><option>大二</option><option>大三</option><option>大四</option><option>研究生</option>
+    </select>
+    <label>专业方向</label>
+    <select id="selMajor">
+      <option value="">未设置</option>
+      <option value="cs">计算机/软件/人工智能</option>
+      <option value="ee">电子/自动化/通信/机械</option>
+      <option value="math">数学/统计</option>
+      <option value="design">设计/美术/视觉</option>
+      <option value="business">经管/商科/金融</option>
+      <option value="liberal">人文社科/外语/新闻</option>
+      <option value="agro">农林/生物/医学</option>
+      <option value="general">其他</option>
+    </select>
+    <label>每周可投入时间</label>
+    <select id="selHours">
+      <option value="">未设置</option>
+      <option value="3">少于5小时</option>
+      <option value="8">5—10小时</option>
+      <option value="12">10小时以上</option>
+    </select>
+    <label>个人特长</label>
+    <input type="text" id="inpStrength" placeholder="如：编程 / 写作 / 设计 / 数学">
+    <div class="modal-actions">
+      <button class="btn-plain" id="btnProfileCancel">取消</button>
+      <button class="btn-primary" id="btnProfileSave">保存画像</button>
+    </div>
+  </div>
+</div>
+
+<!-- 关于弹窗（毛玻璃） -->
+<div class="modal-mask" id="aboutModal">
+  <div class="modal">
+    <h2>关于本 Demo</h2>
+    <p>这是<b>"大学生学业&竞赛规划助手"</b>的参赛演示版：</p>
+    <p>· 对话引擎内置知识库内容（4份文档），完全离线运行，双击即用；<br>
+       · 正式版基于 <b>TeleAgent 平台 Skill 扩展机制</b>实现（技能 college-study-competition-planner），支持联网核实与按需检索；<br>
+       · 演示版用于<b>录屏与路演展示</b>，回答口径、边界约束与正式版一致。</p>
+    <p><b>已实现能力</b>：技能自动激活 · 学生画像多轮记忆 · 竞赛个性化推荐（年级×专业×时间预算）· 赛事六字段查询 · 申报材料大纲指导 · 学业平衡建议 · 边界拒答（不代写/不承诺获奖/不编造数据）。</p>
+    <p><b>提示</b>：所有赛事时间以官方最新通知为准。</p>
+    <div class="modal-actions">
+      <button class="btn-primary" id="btnAboutClose">我知道了</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   大学生学业&竞赛规划助手 · 软件Demo
+   知识库内容与回答口径与 TeleAgent 技能正式版保持一致
+   ========================================================= */
+
+/* ---------- 工具 ---------- */
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+/* ---------- 持久化 ---------- */
+const LS_CHAT = 'planner_demo_chat_v1';
+const LS_PROFILE = 'planner_demo_profile_v1';
+const LS_ACT = 'planner_demo_activated_v1';
+let history = [];
+try { history = JSON.parse(localStorage.getItem(LS_CHAT) || '[]'); } catch(e){ history = []; }
+let profile = { grade:null, major:null, majorCat:null, hours:null, strengths:null };
+try { const p = JSON.parse(localStorage.getItem(LS_PROFILE) || 'null'); if (p) profile = Object.assign(profile, p); } catch(e){}
+let activated = localStorage.getItem(LS_ACT) === '1';
+
+function persist(){
+  try {
+    localStorage.setItem(LS_CHAT, JSON.stringify(history.slice(-60)));
+    localStorage.setItem(LS_PROFILE, JSON.stringify(profile));
+    localStorage.setItem(LS_ACT, activated ? '1' : '0');
+  } catch(e){}
+}
+
+/* ---------- 知识库：赛事数据（源自01文档） ---------- */
+const COMP_INFO = {
+  datiao: {
+    title: '"挑战杯"课外学术科技作品竞赛（大挑）',
+    tag: '第20届预计2027年',
+    fields: [
+      ['主办方 / 级别', '共青团中央、中国科协 · 国家级A类（"科创奥林匹克"）'],
+      ['参赛对象', '全日制本硕博在校生；团队≤8人，指导教师≤3人'],
+      ['时间节点', '校赛（前一年12月—当年3月）→ 省赛（5—6月）→ 国赛（10—11月）；第19届2025年已办，<b>第20届预计2027年</b>，校赛今年12月起'],
+      ['作品类型', '自然科学论文（限本科）/ 哲社类社会调查报告 / 科技发明制作A·B类'],
+      ['申报材料', '作品申报书 + 完整论文或报告（需查重）+ 专利/软著/检测报告等佐证'],
+      ['获奖福利', '国家特/一/二/三等奖；保研综合评价与综测加分核心赛事'],
+      ['备赛周期', '8—12个月（选题2月→执行3—4月→成文2月→答辩1—2月）']
+    ],
+    refs: ['01-竞赛信息汇总']
+  },
+  xiaotiao: {
+    title: '"挑战杯"中国大学生创业计划竞赛（小挑）',
+    tag: '2026年第十五届进行中',
+    fields: [
+      ['主办方 / 级别', '共青团中央、教育部等 · 国家级A类'],
+      ['参赛对象', '全日制在校生（本专科硕博）；团队参赛，须指导教师'],
+      ['时间节点', '2026年：校赛1—5月 → 省赛5—6月 → 国赛10—11月（官网 2026.tiaozhanbei.net）；下届（第16届）预计2028年'],
+      ['作品类型', '5组别：科技创新未来产业 / 乡村振兴 / 生态文明绿色低碳 / 文化创意区域合作 / 社会治理公共服务'],
+      ['申报材料', '创业计划书 + 路演PPT与视频 + 营业执照/专利/合作协议等佐证'],
+      ['获奖福利', '国家金/银/铜奖；投资孵化对接；保研综测加分'],
+      ['备赛周期', '6—10个月；已注册公司的实战项目更易获奖']
+    ],
+    refs: ['01-竞赛信息汇总']
+  },
+  chuangxin: {
+    title: '中国国际大学生创新大赛（原"互联网+"）',
+    tag: '2027年8月报名',
+    fields: [
+      ['主办方 / 级别', '教育部 · 国家级A类（竞赛排行榜首位）'],
+      ['参赛对象', '全日制在校生 + 毕业5年内（学籍以当年4.30为准）；团队3—15人可跨校；每人限1个项目'],
+      ['时间节点', '2026年赛程已结束（供参考）：报名8.10开放（cy.ncss.cn）→ 校市赛9月中旬截止 → 省赛9—10月 → 国赛10—11月。<b>2027年备赛建议今年秋冬启动培育</b>'],
+      ['作品类型', '高教主赛道（创意/初创/成长组）、产业命题、红旅、职教赛道'],
+      ['申报材料', '商业计划书PDF + 路演PPT（10—15页）+ 1分钟视频 + 知识产权与财务佐证'],
+      ['获奖福利', '金/银/铜奖；保研加分含金量极高；投资机构对接'],
+      ['备赛周期', '8—12个月，重"真项目、真数据、真落地"']
+    ],
+    refs: ['01-竞赛信息汇总']
+  },
+  daguang: {
+    title: '全国大学生广告艺术大赛（大广赛）',
+    tag: '2027年3—4月命题',
+    fields: [
+      ['主办方 / 级别', '教育部高教司指导 · 国家级A类 · <b>免费参赛</b>'],
+      ['参赛对象', '全日制在校大学生（含高职、研究生），专业不限；团队≤5人 + 指导教师'],
+      ['时间节点', '命题3—4月发布 → 作品提交5—6月（第18届为5.10—6.12）→ 省评6—7月 → 国评8—9月；官网 sun-ada.net'],
+      ['作品类型', '平面 / 视频 / 动画 / 互动H5 / 广播 / 策划案 / 文案——必须基于官方企业命题'],
+      ['申报材料', '作品文件（按类别格式规范）+ 创作说明 + 在线报名信息'],
+      ['获奖福利', '全国一/二/三等奖 + 省级奖；综测与奖学金加分'],
+      ['备赛周期', '2—3个月，适合每周4—6小时投入；零设计基础可选文案、策划案类']
+    ],
+    refs: ['01-竞赛信息汇总']
+  },
+  lanqiao: {
+    title: '蓝桥杯全国大学生软件和信息技术大赛（第十八届）',
+    tag: '报名进行中',
+    fields: [
+      ['主办方 / 级别', '中国软件行业协会指导 · 国家级（学科竞赛排行榜内）· 每年20余万人参赛'],
+      ['参赛对象', '全日制研究生/本科/专科生，按学籍选组别（研究生组/大学组/专科组）'],
+      ['时间节点', '<b>软件赛/电子赛/AI赛/鸿蒙专项：报名 2026.10.8 — 12.18 14:00（正在进行）</b>；视觉设计赛报名至2027.4.26；省赛2027年4月；全国总决赛2027年6月；官网 lanqiao.cn'],
+      ['作品类型', '软件赛（Java/C/C++/Python/Web，个人机试）、电子赛（嵌入式/单片机）、AI赛、视觉艺术设计赛、数字科技创新赛'],
+      ['申报材料', '程序类现场机试无需提交作品；设计类提交作品源文件+展示图；报名费约300元（以官网为准）'],
+      ['获奖福利', '省一/二等奖晋级国赛；国赛一/二/三等奖；综测保研加分；就业直通活动'],
+      ['备赛周期', '3—6个月（基础1—2月→分类刷题2月→真题模考1月），建议每周10—15题']
+    ],
+    refs: ['01-竞赛信息汇总']
+  },
+  shumo: {
+    title: '全国大学生数学建模竞赛（高教社杯CUMCM）',
+    tag: '2027年9月',
+    fields: [
+      ['主办方 / 级别', '中国工业与应用数学学会 · 国家级A类 · 世界最大数模竞赛（26万余人/年）'],
+      ['参赛对象', '全日制在校大学生；每队3人（同校）+ 指导教师'],
+      ['时间节点', '固定节奏：<b>每年9月第二周周四18:00—周日20:00（72小时）</b>；2026年（9.10—13）已结束，2027年具体日期以官方通知为准；校内报名7月—9月初'],
+      ['作品类型', '开赛任选A/B/C题（本科）或C/D题（专科），72小时完成建模+求解+完整论文'],
+      ['申报材料', '校内报名表+缴费；竞赛提交论文PDF与程序代码（严格按模板）'],
+      ['获奖福利', '国家一等奖（约0.6%）/二等奖 + 赛区奖；保研考研复试重要加分'],
+      ['备赛周期', '3—6个月：组队分工（建模/编程/写作）→ 模型学习 → 3—5次真题模拟']
+    ],
+    refs: ['01-竞赛信息汇总']
+  },
+  meisai: {
+    title: '美国大学生数学建模竞赛（MCM/ICM）',
+    tag: '2027年1—2月',
+    fields: [
+      ['主办方 / 级别', '美国数学及其应用联合会（COMAP）· 国际性'],
+      ['参赛对象', '3人一队，<b>可跨校</b>（与国赛不同）；本科生为主'],
+      ['时间节点', '每年1—2月线上举行（4天）；报名前一年10月—当年1月；官网 comap.com'],
+      ['作品类型', '英文论文：建模、求解、灵敏度分析、写作'],
+      ['申报材料', '队内注册报名 + 英文论文提交'],
+      ['获奖福利', 'O/F/M/H/S奖；M奖以上对出国申请、保研有帮助'],
+      ['备赛周期', '3—5个月；与国赛训练高度重合，可"一次备赛两次参赛"']
+    ],
+    refs: ['01-竞赛信息汇总']
+  },
+  daying: {
+    title: '全国大学生英语竞赛（NECCS大英赛）',
+    tag: '12月—3月报名',
+    fields: [
+      ['主办方 / 级别', '国际英语外语教师协会等 · 国家级 · 获奖面广'],
+      ['参赛对象', 'A类研究生 / B类英语专业 / <b>C类非英语专业本科</b> / D类体育艺术高职'],
+      ['时间节点', '报名12月—次年3月（赛氪 saikr.com，报名费50元）→ 初赛次年4月中旬（2026年为4.12）→ 决赛5月中旬'],
+      ['作品类型', '笔试150分：听力/单选/完形/阅读/翻译/改错/智力测试/写作；决赛加口试'],
+      ['申报材料', '线上报名即可（或学校统一组织）'],
+      ['获奖福利', '特等奖+一/二/三等奖；综测奖学金加分；特等奖可参加全国总决赛'],
+      ['备赛周期', '2—3个月碎片化备考；与四六级重合度约70%']
+    ],
+    refs: ['01-竞赛信息汇总']
+  }
+};
+
+/* ---------- 演示提问 ---------- */
+const QUICK = [
+  { label:'🎬 场景1', text:'我是汉语言文学专业大一新生，课多，每周只有4小时，能参加什么竞赛？' },
+  { label:'🎬 场景2', text:'计算机专业大二，每周10小时，代码还行，推荐什么比赛？' },
+  { label:'🎬 场景3', text:'直接帮我写一份完整的互联网+商业计划书' },
+  { label:'保研', text:'大三想保研，哪些竞赛加分最有用？' },
+  { label:'蓝桥杯', text:'蓝桥杯什么时候报名截止？' },
+  { label:'数模', text:'数学建模国赛2027年什么时候比？' },
+  { label:'四六级', text:'四六级怎么备考？' },
+  { label:'组队', text:'想组队参加数学建模，怎么找队友、怎么分工？' },
+  { label:'冲突', text:'快期末了，我还在备赛，怎么办？' },
+  { label:'选题', text:'互联网+项目选题怎么找创新点？' }
+];
+
+/* ---------- 画像解析 ---------- */
+const MAJOR_PATTERNS = [
+  [/计算机|软件|人工智能|大数据|信息安全|信息工程/, '计算机类', 'cs'],
+  [/电子|自动化|通信|电气|机械|物联网|测控/, '电子/工科类', 'ee'],
+  [/数学|统计|应用数学/, '数学/统计类', 'math'],
+  [/设计|美术|艺术|视觉|动画|环境艺术/, '艺术设计类', 'design'],
+  [/经管|商科|市场营销|工商管理|金融|会计|经济|国贸/, '经管商科类', 'business'],
+  [/汉语言|中文|新闻|传播|历史|哲学|外语|英语专业|法学|社会学|文科/, '人文社科类', 'liberal'],
+  [/农学|林学|生物|医学|临床|药学|园艺|植保/, '农林生医类', 'agro']
+];
+
+function detectProfile(text){
+  const changes = [];
+  let g = null;
+  if (/大[一1]|新生|freshman|刚上大学/.test(text)) g = '大一';
+  else if (/大[二2]/.test(text)) g = '大二';
+  else if (/大[三3]/.test(text)) g = '大三';
+  else if (/大[四4]|毕业年级/.test(text)) g = '大四';
+  else if (/研究生|硕士|博士/.test(text)) g = '研究生';
+  if (g && profile.grade !== g) { profile.grade = g; changes.push('年级'); }
+
+  let h = null;
+  const m = text.match(/(\d+(?:\.\d+)?)\s*个?小时/);
+  if (m) h = parseFloat(m[1]);
+  else if (/不到[三四]小时|只有[一二三]小时|少于[45]小时|没什么时间/.test(text)) h = 3;
+  if (h !== null && profile.hours !== h) { profile.hours = h; changes.push('时间'); }
+
+  for (const [re, name, cat] of MAJOR_PATTERNS) {
+    if (re.test(text)) {
+      if (profile.major !== name) { profile.major = name; profile.majorCat = cat; changes.push('专业'); }
+      break;
+    }
+  }
+
+  const st = text.match(/特长是?([^，。,.！!？?\s]{2,8})|会(编程|写作|设计|画画|数学|演讲)/);
+  if (st) { const v = st[1] || st[2]; if (v && profile.strengths !== v) { profile.strengths = v; changes.push('特长'); } }
+
+  return changes;
+}
+
+/* ---------- 赛事识别 ---------- */
+function detectCompetition(t){
+  if (/互联网\+|创新大赛/.test(t)) return 'chuangxin';
+  if (/大挑|课外学术/.test(t)) return 'datiao';
+  if (/小挑|创业计划/.test(t)) return 'xiaotiao';
+  if (/挑战杯/.test(t)) return 'tiao';
+  if (/大广赛|广告艺术/.test(t)) return 'daguang';
+  if (/蓝桥杯/.test(t)) return 'lanqiao';
+  if (/美赛|mcm|icm/i.test(t)) return 'meisai';
+  if (/数学建模|数模|建模国赛|高教社/.test(t)) return 'shumo';
+  if (/大英赛|英语竞赛|neccs/i.test(t)) return 'daying';
+  return null;
+}
+
+/* ---------- 意图路由 ---------- */
+function routeIntent(t){
+  if (/帮我写|代写|直接写|写一份完整|帮我做一份完整/.test(t) && /计划书|申报书|商业计划|论文|报告|方案书/.test(t)) return 'ghost';
+  if (/包拿奖|保证获奖|能拿奖吗|获奖率|包获奖|稳拿/.test(t)) return 'promise';
+  if (/^(你好|您好|嗨|哈喽|在吗|hi|hello)[!！。～~]?\s*$|有什么用|你能干什么|你是谁|介绍一下你|你能做什么/.test(t)) return 'greet';
+  if (/谢谢|感谢|辛苦/.test(t) && t.length < 12) return 'thanks';
+  if (/保研|推免|加分/.test(t)) return 'baoyan';
+  if (/组队|队友|找队友|分工/.test(t)) return 'team';
+  if (/期末.*(?:备赛|比赛|竞赛|项目)|(?:备赛|比赛).{0,6}期末|忙不过来|来不及|时间冲突|挤占/.test(t)) return 'conflict';
+  if (/期末复习|复习计划|怎么复习|考试周怎么/.test(t)) return 'review';
+  if (/答辩|评委|路演紧张|很紧张/.test(t)) return 'defense';
+  if (/选题|创新点|idea|项目想法|怎么找题/.test(t)) return 'topic';
+  if (/四六级|cet|四级|六级/.test(t)) return 'cet';
+  if (/计算机二级|ncre|二级证|国二/.test(t)) return 'ncre';
+  if (/含金量|值得参加|值得吗|水赛|正不正规|靠谱吗/.test(t)) return 'value';
+  if (/区别|对比|哪个好|选哪个|怎么选/.test(t)) return 'compare';
+  if (/申报书|商业计划书|计划书|路演|PPT|幻灯|调研报告|调查报告|大纲|材料.{0,4}怎么写|怎么写/.test(t)) return 'material';
+  const comp = detectCompetition(t);
+  if (comp) return { type:'comp', comp };
+  if (/推荐|适合|该参加|参加什么|什么比赛|什么竞赛|哪些比赛|哪些竞赛|能参加/.test(t)) return 'recommend';
+  if (/[杯赛]|大赛|竞赛/.test(t)) return 'unknownComp';
+  const det = { g:/大[一二三四]|研究生/.test(t), h:/小时/.test(t), m:MAJOR_PATTERNS.some(p=>p[0].test(t)) };
+  if (det.g || det.h || det.m) return 'recommend';
+  return 'fallback';
+}
+
+/* ---------- 推荐引擎 ---------- */
+function buildRecs(p){
+  const R = [];
+  const add = (name, tag, why, when, act) => R.push({name, tag, why, when, act});
+  const g = p.grade, cat = p.majorCat || 'general', h = (p.hours === null || p.hours === undefined) ? 8 : p.hours;
+  const low = h < 5;
+
+  if (g === '大一') {
+    if (low) {
+      add('全国大学生英语竞赛（C类）', '4月初赛', '碎片化备考每天40分钟即可，与四六级重合度约70%，一举两得', '12月—次年3月报名（赛氪）', '先做2套真题摸底');
+      add('大学英语四六级', '12.12笔试', '词汇听力与大英赛通用，备考成本最低', '9—10月校内报名（cet-bm.neea.edu.cn）', '每天50分钟：单词+听力');
+      if (cat === 'design') add('大广赛（平面类）', '2027年3—4月命题', '免费参赛、单件作品即可，设计功底直接转化', '5—6月提交（sun-ada.net）', '命题发布后集中3周做1件');
+      else add('大广赛（文案/策划案类）', '2027年3—4月命题', '零设计基础可参加，Word文档即可完成', '5—6月提交', '先看往年获奖作品找感觉');
+    } else {
+      if (cat === 'cs' || cat === 'ee') {
+        add('蓝桥杯软件/电子赛', '报名进行中', '编程课基础直接转化，大一即可报大学组，含金量稳定', '报名至2026.12.18、省赛2027年4月', '选Python或C组，每周刷8—10题');
+        add('计算机二级（Python/C）', '2027年3月考', '为蓝桥杯热身 + 简历标配', '12月下旬—1月报名', '题库刷操作题');
+        add('全国大学生英语竞赛', '4月初赛', '绩点之外的轻量国家级奖项', '12月—3月报名', '与四六级并行备考');
+      } else if (cat === 'design') {
+        add('大广赛', '2027年3—4月命题', '设计专业主战场，国家级 + 免费', '5—6月提交', '收集命题后做2件系列作品');
+        add('蓝桥杯视觉艺术设计赛', '报名至2027.4.26', '作品提交制，不看现场编程，与专业直接相关', '2027年6月总决赛', '打磨1—2套代表作');
+        add('大英赛', '4月初赛', '轻量打底', '12月—3月报名', '每天40分钟');
+      } else if (cat === 'math') {
+        add('数学建模（校级/跟队）', '2027年9月国赛', '数学优势直接发挥，大一先跟队练手', '校赛通常春季', '找数模协会报名');
+        add('计算机二级（Python）', '2027年3月考', '编程工具先行，为建模打基础', '12月—1月报名', '8周规划备考');
+        add('大英赛', '4月初赛', '轻量打底', '12月—3月报名', '碎片化备考');
+      } else if (cat === 'business' || cat === 'liberal') {
+        add('大英赛（C类）', '4月初赛', p.major === '人文社科类' ? '文字与英语功底放大' : '商科生通用国家级奖项', '12月—3月报名', '真题2套摸底');
+        add('四六级', '12.12笔试', '与大英赛并行，备考重合', '9—10月报名', '每日50分钟最小方案');
+        add('跟队挑战杯/创新大赛', '校赛12月起', '走完"选题→计划书→路演"全流程，大二当主力', '联系辅导员或学长', '主动申请做执行类工作');
+      } else {
+        add('大英赛', '4月初赛', '全专业可参加的国家级赛事', '12月—3月报名', '每天40分钟');
+        add('四六级', '12.12笔试', '学业标配', '9—10月报名', '3个月时间线');
+        add('计算机二级', '2027年3月考', '简历标配', '12月—1月报名', '8周规划备考');
+      }
+    }
+  } else if (g === '大二') {
+    if (cat === 'cs' || cat === 'ee') {
+      add('蓝桥杯软件/电子赛', '报名进行中', '专业技能主场，省一/二等奖可进国赛', '报名至12.18、省赛2027年4月、总决赛6月', '每周10题+分类专题（动态规划/图论）');
+      add('数学建模国赛', '2027年9月', '以编程手/建模手身份入队，72小时冲刺制', '春季校队组队', '找2名队友先模拟1套真题');
+      add('挑战杯（跟队/校赛）', '校赛12月—3月', '积累学术项目经历，为大三冲奖布局', '联系指导教师', '把课程设计升级为参赛作品');
+    } else if (cat === 'math') {
+      add('数学建模国赛', '2027年9月', '专业主场，国奖是保研硬通货', '春季校队报名', '组队+3—5套真题模拟');
+      add('美赛 MCM/ICM', '2027年1—2月', '英文论文+国际奖项，与国赛同套训练', '10月—1月报名（comap.com）', '与国赛队友一起报');
+      add('蓝桥杯（Python组）', '报名进行中', '编程能力直观证明', '至12.18', '每周8题保持手感');
+    } else if (cat === 'design') {
+      add('大广赛', '2027年3—4月命题', '专业主战场，免费国家级', '5—6月提交', '系列化2件作品（平面+视频）');
+      add('蓝桥杯视觉艺术设计赛', '报名至2027.4.26', '国家级 + 作品提交制', '2027年总决赛', '打磨1套完整视觉方案');
+      add('挑战杯跟队（视觉担当）', '校赛12月—3月', '作品集+团队经历双收', '联系老师', '承担团队视觉设计角色');
+    } else if (cat === 'business') {
+      add('大广赛策划案类', '2027年3—4月命题', '商科创意与策划能力直接转化', '5—6月提交', '做1份整合营销传播案');
+      add('创新大赛项目培育', '2027年8月报名', '商业思维主场，提前半年培育最稳', '今年秋冬启动', '找技术队友搭项目雏形');
+      add('市场调查与分析大赛', '春季校赛', '数据分析+调研的轻量切入点', '关注学校通知', '组2—3人队');
+    } else if (cat === 'liberal') {
+      add('大英赛', '4月初赛', '英语优势放大，获奖面广', '12月—3月报名', '专项训练改错+智力测试题');
+      add('大广赛文案类', '2027年3—4月命题', '文字功底直接转化，免费参赛', '5—6月提交', '文案+策划案各做1件');
+      add('挑战杯社会调查报告', '校赛12月—3月', '调研与写作主场', '组队联系思政/社会学老师', '从身边议题设计问卷');
+    } else {
+      add('数学建模国赛', '2027年9月', '团队协作+综合能力锻炼', '春季组队', '先参加校内选拔');
+      add('大英赛', '4月初赛', '轻量国家级', '12月—3月报名', '2—3个月备考');
+      add('大广赛', '2027年3—4月命题', '免费 + 全专业可参加', '5—6月提交', '选文案或策划案类');
+    }
+  } else if (g === '大三') {
+    add('挑战杯（大挑）', '第20届预计2027年', '保研加分第一梯队，学术成果主场', '校赛12月—3月、国赛10—11月', '把已有课程成果/论文升级为申报作品');
+    add('中国国际大学生创新大赛', '2027年8月报名', '含金量最高的双创赛事，今年秋冬培育', '国赛2027年10—11月', '组跨学科队+找导师背书');
+    add('数学建模国赛', '2027年9月', '备赛周期短、9月比赛10月出成绩', '春季组队', '3次全真模拟再上场');
+  } else if (g === '大四') {
+    add('美赛 MCM/ICM', '2027年1—2月', '考研初试后空档参赛，复试展示项目经历', '10月—1月报名', '初试结束后4天冲刺');
+    add('蓝桥杯', '报名进行中', '求职简历硬通货，省赛一等奖即可写', '省赛2027年4月', '每周10题保持手感');
+    add('大广赛', '2027年3—4月命题', '补作品集素材', '5—6月提交', '做1件代表作');
+  } else if (g === '研究生') {
+    add('大英赛（A类）', '12月—3月报名', '研究生组竞争相对温和', '4月初赛', '真题摸底');
+    add('挑战杯/创新大赛', '校赛12月起', '课题成果转化 + 团队主力位置', '联系导师', '把课题向应用端推进一步');
+  }
+  return R;
+}
+
+/* ---------- 响应构建 ---------- */
+function recBlock(i, r){
+  const tagCls = /进行中/.test(r.tag) ? 'open' : 'plan';
+  return '<div class="rec"><div class="rec-head"><span class="rec-num">' + i + '</span><b>' + r.name + '</b><span class="rec-tag ' + tagCls + '">' + r.tag + '</span></div>' +
+    '<div class="rec-why">' + r.why + '</div>' +
+    '<div class="rec-when">⏰ ' + r.when + '</div>' +
+    '<div class="rec-act">→ 下一步：' + r.act + '</div></div>';
+}
+
+function respGreet(){
+  return { html: '你好！我是<b>大学生学业&竞赛规划助手</b>，可以帮你：<br><br>' +
+    '① <b>匹配竞赛</b>——按年级、专业、每周可投入时间推荐合适赛事<br>' +
+    '② <b>备赛规划</b>——制定可落地时间线，给选题方向和申报材料大纲<br>' +
+    '③ <b>学业平衡</b>——四六级/计算机二级/期末复习规划，竞赛不挤占课业<br><br>' +
+    '先告诉我：你的<b>年级</b>和<b>专业</b>？每周能投入多少时间？<div class="dim" style="margin-top:8px">⚠️ 仅提供规划建议；赛事规则与时间以官方通知为准；不代写完整申报材料。</div>',
+    refs: ['04-高频问答样例库'] };
+}
+
+function askProfile(){
+  const rows = [
+    ['年级', profile.grade],
+    ['专业', profile.major],
+    ['每周可投入时间', profile.hours ? profile.hours + '小时' : null]
+  ];
+  const list = rows.map(r => '<div>' + (r[1] ? '✅' : '⬜') + ' ' + r[0] + '：' + (r[1] || '还没告诉我') + '</div>').join('');
+  return { html: '推荐前先了解你的情况：<br><br>' + list + '<br><br>补齐缺少的项即可，例如："计算机专业，每周6小时"。<div class="dim" style="margin-top:8px">也可以说说特长（编程/写作/设计/数学），推荐会更精准。</div>', refs: ['04-高频问答样例库'] };
+}
+
+function fullRecommend(){
+  const R = buildRecs(profile);
+  if (!R.length) return askProfile();
+  const parts = [];
+  parts.push('结合你的画像（' + [profile.grade, profile.major, profile.hours ? '每周' + profile.hours + '小时' : null].filter(Boolean).join(' · ') + '），推荐以下' + R.length + '项：');
+  R.forEach((r, i) => parts.push(recBlock(i + 1, r)));
+  const h = profile.hours || 8;
+  parts.push('以上投入按<b>每周' + h + '小时</b>预算设计，不会挤占上课与期末复习' + (h < 5 && profile.grade === '大一' ? '；团队长周期项目（挑战杯/创新大赛）建议等课业宽松的学期再参加' : '') + '。');
+  parts.push('<div class="dim">具体报名时间以各赛事官网与学校教务/团委通知为准。</div>');
+  return { html: parts.join(''), refs: ['01-竞赛信息汇总', '04-高频问答样例库'] };
+}
+
+function respComp(id){
+  if (id === 'tiao') {
+    return { html: '"挑战杯"有两个系列，隔年交替举办：<br><br>' +
+      '① <b>大挑</b>（课外学术科技作品竞赛）：考察学术研究成果——论文/调查报告/科技发明；第19届2025年已办，<b>第20届预计2027年</b>（校赛今年12月—明年3月启动）<br>' +
+      '② <b>小挑</b>（创业计划竞赛）：考察商业计划可行性；2026年第十五届进行中（国赛10—11月），下届2028年<br><br>' +
+      '告诉我你更关心哪个，我给你完整六字段信息（参赛对象/时间/作品/材料/福利/周期）。',
+      refs: ['01-竞赛信息汇总'] };
+  }
+  const c = COMP_INFO[id];
+  const rows = c.fields.map(f => '<div style="margin:5px 0"><b>【' + f[0] + '】</b> ' + f[1] + '</div>').join('');
+  return { html: '<b>' + c.title + '</b> <span class="rec-tag ' + (/进行中/.test(c.tag) ? 'open' : 'plan') + '">' + c.tag + '</span><br><br>' + rows +
+    '<div class="dim" style="margin-top:8px">以赛事官方当年通知为准。</div>',
+    refs: c.refs };
+}
+
+function respCompare(){
+  return { html: '两者都是顶级A类赛事，考察方向不同：<br><br>' +
+    '① <b>挑战杯大挑</b>：学术研究成果（论文/调查报告/发明）——适合有实验室基础或深度调研的项目，奇数年办（下届2027）<br>' +
+    '② <b>挑战杯小挑</b>：创业计划可行性，偶数年办（2026年第十五届）<br>' +
+    '③ <b>中国国际大学生创新大赛</b>："真创业"——看落地进展、用户数据、营收，每年办（8月报名、10月国赛）<br><br>' +
+    '<b>选择建议</b>：有技术有导师资源→大挑；有产品有运营数据→创新大赛。一个成熟项目可以"一鱼多吃"，按不同评价口径改造材料分别申报。',
+    refs: ['01-竞赛信息汇总', '04-高频问答样例库'] };
+}
+
+function respMaterial(t){
+  if (/调研报告|调查报告/.test(t)) {
+    return { html: '社会调查报告标准大纲（总字数一般1.5万—3万字）：<br><br>' +
+      '① <b>摘要与关键词</b>：研究问题、方法（样本量/时间/地点）、核心发现、对策建议各一句<br>' +
+      '② <b>第一章 引言</b>：背景与问题提出、文献回顾、研究意义<br>' +
+      '③ <b>第二章 研究设计</b>：概念界定、方法（问卷/访谈/田野）、样本与数据来源<br>' +
+      '④ <b>第三章 结果与分析</b>：描述统计→交叉分析→典型案例摘录<br>' +
+      '⑤ <b>第四章 问题与成因</b>：表层问题→深层原因→利益相关方<br>' +
+      '⑥ <b>第五章 对策建议</b>：分主体建议，与第三章数据一一对应<br>' +
+      '⑦ <b>结语与参考文献</b>（GB/T 7714）+ 附录（问卷/访谈提纲）<br><br>' +
+      '<b>数据规范</b>：图表有编号与来源；问卷报告发放/回收/有效率；访谈注明编码（如"受访者A3"）。<div class="dim" style="margin-top:8px">我可以帮你细化某一章的写作要点，但不代写完整正文。</div>',
+      refs: ['02-竞赛配套模板库'] };
+  }
+  if (/PPT|路演|幻灯/.test(t)) {
+    return { html: '路演PPT标准结构（12—15页，每页停留45—60秒）：<br><br>' +
+      '<b>P1 封面</b>：项目名+一句话定位｜<b>P2 痛点</b>：数据+场景，一页一个核心痛点<br>' +
+      '<b>P3 解决方案</b>：产品图/服务流程｜<b>P4 技术壁垒</b>：专利算法+与现有方案对比表<br>' +
+      '<b>P5 创新点</b>：≤3条图标化呈现｜<b>P6—7 市场与竞品</b>：TAM/SAM/SOM+竞争矩阵<br>' +
+      '<b>P8 商业模式</b>：怎么赚钱｜<b>P9 运营现状</b>：订单/用户/合作截图（真实数据）<br>' +
+      '<b>P10 财务规划</b>：三年营收预测｜<b>P11 社会价值</b>：就业带动/公益<br>' +
+      '<b>P12 团队</b>：互补性+导师｜<b>P13—14 规划与结尾</b>：里程碑+联系方式<br><br>' +
+      '<b>制作要点</b>：文字不超过页面1/3、图占比60%以上；数据可溯源；配色不超过3种。<div class="dim" style="margin-top:8px">需要逐页展开某一页的要点，随时说。</div>',
+      refs: ['02-竞赛配套模板库'] };
+  }
+  return { html: '竞赛申报书/商业计划书标准框架（8部分）：<br><br>' +
+    '① <b>项目名称与摘要</b>：300—500字，含背景痛点/解决方案/核心成果/创新点/应用价值五要素<br>' +
+    '② <b>立项背景与意义</b>：政策背景+数据痛点+文献技术综述<br>' +
+    '③ <b>项目内容与技术方案</b>：总体思路图（技术路线图必备）+创新点逐条列出<br>' +
+    '④ <b>实施计划与进度</b>：甘特图呈现各阶段任务/时间/责任人<br>' +
+    '⑤ <b>团队介绍与分工</b>：能力互补性+指导教师成果<br>' +
+    '⑥ <b>已有基础与成果</b>：文献/论文/专利/原型/合作协议<br>' +
+    '⑦ <b>预期成果与价值</b>：论文/专利/产品原型/社会效益<br>' +
+    '⑧ <b>经费预算</b>：分项列支+测算依据<br><br>' +
+    '<b>撰写要点</b>：评审视角写作，图表优于文字、结论前置；创新点≤5条且每条有证据；避免"国际领先"等绝对化表述。<div class="note-box">⚠️ 边界约束：我只提供大纲与思路，不代写完整正文——内容需结合你的项目实际撰写。</div>',
+    refs: ['02-竞赛配套模板库'] };
+}
+
+function respGhost(){
+  return { html: '我不能代写完整的商业计划书——这是智能体的<b>边界约束</b>之一。<br><br>' +
+    '但我可以提供：<br>' +
+    '① <b>12—15页路演PPT的标准结构</b>与每页要点<br>' +
+    '② <b>计划书8部分框架</b>及各节写作方法论<br>' +
+    '③ <b>3个可行的选题方向</b>（结合你的专业背景）<br><br>' +
+    '你先告诉我：项目大概想做什么方向？我基于此帮你搭框架、指出常见失分点。',
+    refs: ['02-竞赛配套模板库', '04-高频问答样例库'] };
+}
+
+function respCET(){
+  return { html: '<b>2026下半年四六级</b>：笔试<b>12月12日</b>（四级上午/六级下午），口试11.21—22。<br><br>' +
+    '<b>三个月备考时间线</b>：<br>' +
+    '① <b>第1个月（基础）</b>：摸底1套真题→每天50—80个高频词+精听<br>' +
+    '② <b>第2个月（专项）</b>：听力每天精听1个section、阅读2篇+错题复盘、每周1篇作文+2段翻译<br>' +
+    '③ <b>第3个月（冲刺）</b>：每周2套限时模考+错题本回顾<br><br>' +
+    '<b>每日最小投入</b>：单词20min+听力15min+读写15min≈50分钟。<br><br>' +
+    '与大英赛备考重合度约70%，可并行：3月前共用词汇听力训练，4月初赛、6月四六级节奏刚好错开。<div class="dim" style="margin-top:8px">报名：cet-bm.neea.edu.cn，以学校教务通知为准。</div>',
+    refs: ['03-学业备考资料包'] };
+}
+
+function respNCRE(){
+  return { html: '<b>计算机二级（NCRE）</b>：<br><br>' +
+    '⏰ <b>2027年3月批次</b>：预计3.27—29考试；报名2026年12月下旬—2027年1月中旬（各省窗口不同）<br><br>' +
+    '<b>科目选择</b>：非计算机专业选WPS Office（较易）或MS Office；计算机相关选Python或C（为蓝桥杯/考研机试打基础）。机考120分钟，60分合格。<br><br>' +
+    '<b>8周规划</b>：<br>' +
+    '① 1—3周：视频+题库过基础（每天1—1.5小时）<br>' +
+    '② 4—6周：真题专项突破，Excel函数（VLOOKUP/SUMIFS/IF嵌套）单独强化<br>' +
+    '③ 7—8周：每周3次全真模考，控制120分钟内完成<div class="dim" style="margin-top:8px">报名：ncre-bm.neea.cn，以中国教育考试网当次公告为准。</div>',
+    refs: ['03-学业备考资料包'] };
+}
+
+function respReview(){
+  return { html: '期末复习<b>四阶段法</b>（考前3周）：<br><br>' +
+    '① <b>摸底规划期</b>（考前第3周）：整理各科考纲，列"考点清单"自评掌握度1—5分<br>' +
+    '② <b>专题攻坚期</b>（考前第2周）：集中攻克掌握度≤2的考点，每天2门交替防疲劳<br>' +
+    '③ <b>真题模拟期</b>（考前4—7天）：每科至少1套往年卷限时模考<br>' +
+    '④ <b>记忆冲刺期</b>（考前1—3天）：只背必拿分内容+错题本二刷<br><br>' +
+    '<b>每日节奏</b>：上午攻坚理科（2个番茄钟）→下午专题练习→晚上错题背诵（番茄钟45+10）。<br><br>' +
+    '提分细节：找近3年真题与学长笔记，期末重复率通常不低；给同学讲懂一道题，自己掌握度提升最快（费曼学习法）。',
+    refs: ['03-学业备考资料包'] };
+}
+
+function respTeam(){
+  return { html: '组队<b>三渠道 + 一条筛选标准</b>：<br><br>' +
+    '① <b>渠道</b>：课程小组合作时观察靠谱同学 / 数模协会等常年备赛的社团 / 任课老师推荐<br>' +
+    '② <b>筛选</b>：技能互补+时间可对齐——组队前直接问"每周能固定投入几小时"，敷衍者慎选<br>' +
+    '③ <b>试合作</b>：先共同做一个小任务（如一份调研问卷）磨合，不畅趁早换人<br>' +
+    '④ <b>规模</b>：2—5人最佳，任务分工落到书面，防"搭便车"<br><br>' +
+    '<b>数模队标准配置</b>：建模手（数学好）+ 编程手（Python/MATLAB）+ 写作手（文笔+排版）。赛前至少全真模拟2次。',
+    refs: ['02-竞赛配套模板库', '04-高频问答样例库'] };
+}
+
+function respBaoyan(){
+  return { html: '保研加分看三档（<b>以你校《推免细则》为准</b>）：<br><br>' +
+    '① <b>第一梯队</b>（多数高校加分最高）：中国国际大学生创新大赛国奖、挑战杯国奖、数模国赛国奖<br>' +
+    '② <b>第二梯队</b>：大英赛特等奖/一等奖、蓝桥杯国奖、省赛一等奖（部分学校认可）<br>' +
+    '③ <b>必做动作</b>：先去学院官网下载《推免生综合评价实施办法》，逐条核对"竞赛列表+加分分值+前几作者"<br><br>' +
+    '<div class="note-box">⏰ 时间提醒：加分材料通常在9月推免申请前要拿到证书；数模国赛10月才公布成绩，只能用于次年推免。</div>',
+    refs: ['01-竞赛信息汇总', '04-高频问答样例库'] };
+}
+
+function respConflict(){
+  return { html: '<b>课业永远优先</b>——绩点不足，连保研资格都会失去。三步止损方案：<br><br>' +
+    '① <b>盘点</b>：列期末各科考试时间与竞赛截止节点，确认硬冲突的具体日期<br>' +
+    '② <b>砍任务保底线</b>：与队友沟通，考前2周只做"保进度"的最小任务（材料修改转给别人），声明你的回归时间<br>' +
+    '③ <b>反向安排</b>：大块备赛任务放考后（期末后即寒假，正是备赛黄金期）；碎片任务（背单词/看论文）保持不断线<br><br>' +
+    '判断标准：<b>绩点1分≈一门课，竞赛是加分项</b>。',
+    refs: ['03-学业备考资料包', '04-高频问答样例库'] };
+}
+
+function respDefense(){
+  return { html: '用<b>准备度</b>抵消紧张：<br><br>' +
+    '① <b>题库演练</b>：把高频问题做成清单，每题写30秒版答案，全队互相提问至少2轮<br>' +
+    '② <b>数据卡片</b>：核心数字（用户量/市场规模/成本）写成小卡片随身背，评委追问时张口就来<br>' +
+    '③ <b>模拟答辩</b>：找指导老师+没参与项目的同学当评委，全真走一遍（含开场白和结束）<br>' +
+    '④ <b>当天技巧</b>：语速放慢20%、开口先复述问题再回答；不会的坦诚说"这是下一步要完善的"<br>' +
+    '⑤ <b>兜底</b>：PPT存U盘+邮箱双备份，视频提前拷贝到答辩电脑<br><br>' +
+    '知识库02文档有完整<b>60道答辩高频问题</b>（项目/技术/商业/团队/风险五类），需要哪一类我给你列。',
+    refs: ['02-竞赛配套模板库'] };
+}
+
+function respTopic(){
+  return { html: '创新点不用凭空想，<b>四条可操作路径</b>：<br><br>' +
+    '① <b>专业×场景交叉</b>：把成熟方法搬到没人用过的场景（例：计算机视觉→农产品分拣）<br>' +
+    '② <b>政策风口找需求</b>：读"十四五"规划、中央一号文件热词（银发经济/低碳/乡村振兴），找未被满足的需求<br>' +
+    '③ <b>生活痛点反推</b>：记录真实抱怨→50份问卷验证普遍性→再想技术方案<br>' +
+    '④ <b>导师课题下蛋</b>：实验室成果向应用端推进一步，自带技术壁垒<br><br>' +
+    '定方向前先查全国大学生创业服务网近3年国奖名单，避开扎堆选题。<br><br>' +
+    '评委看重的创新点 = <b>真实需求 + 技术差异</b>，缺一不可。',
+    refs: ['02-竞赛配套模板库', '04-高频问答样例库'] };
+}
+
+function respPromise(){
+  return { html: '<b>不承诺任何获奖结果</b>——这也是我的边界约束之一。<br><br>' +
+    '但可以给你提升获奖率的务实建议：<br>' +
+    '① 选题选"真实需求+技术差异"，避开扎堆方向<br>' +
+    '② 材料数据全部可溯源，评委常交叉核对PPT与申报书<br>' +
+    '③ 提前查近3年国奖项目名单，做差异化<br>' +
+    '④ 答辩核心数字脱口而出，用准备度抵消紧张<br><br>' +
+    '获奖 = 选题 × 执行 × 呈现，三者都可训练。',
+    refs: ['04-高频问答样例库'] };
+}
+
+function respThanks(){
+  return { html: '不客气！备赛过程中随时回来找我——我记住了你的画像，会持续跟进你的项目进度并调整方案。',
+    refs: ['04-高频问答样例库'] };
+}
+
+function respValue(t){
+  const known = detectCompetition(t);
+  const nm = t.match(/([\u4e00-\u9fa5A-Za-z0-9]{2,8}(?:杯|大赛|竞赛|挑战赛|系列赛))/);
+  const unknownName = (!known && nm) ? nm[1] : null;
+  const head = unknownName
+    ? '我的知识库中<b>未收录「' + unknownName + '」这类赛事</b>——不编造知识库外的数据是我的边界约束。<br><br>判断含金量，<b>三个硬指标</b>：<br><br>'
+    : '判断比赛含金量，<b>三个硬指标</b>：<br><br>';
+  return { html: head +
+    '① <b>查目录</b>：中国高等教育学会《全国普通高校大学生竞赛分析报告》收录目录——挑战杯/创新大赛/大广赛/蓝桥杯/数模/大英赛均在列<br>' +
+    '② <b>查学校细则</b>：本校综测/保研细则明确列名加分的才是"硬通货"<br>' +
+    '③ <b>查主办方</b>：教育部/共青团中央/一级学会主办 ＞ 省级部门 ＞ 商业公司；警惕"交钱就发奖"的山寨比赛<br><br>' +
+    '主流赛事（<b>挑战杯、创新大赛、大广赛、蓝桥杯、数模国赛、美赛、大英赛</b>）的信息我都有，想查哪个？',
+    refs: ['01-竞赛信息汇总'] };
+}
+
+function respUnknownComp(){
+  return { html: '我的知识库中<b>未收录这项赛事</b>——不编造知识库外的数据是我的边界约束。<br><br>' +
+    '用三个指标自查含金量：查竞赛目录 / 查本校细则 / 查主办方级别。<br><br>' +
+    '主流赛事（<b>挑战杯、创新大赛、大广赛、蓝桥杯、数模国赛、美赛、大英赛</b>）的信息我都有，想查哪个？',
+    refs: ['01-竞赛信息汇总'] };
+}
+
+function respFallback(){
+  return { html: '这个问题我先给通用建议，<b>建议核实最新官方信息</b>（知识库中未检索到直接对应内容）。<br><br>' +
+    '要不要换个问法试试：<br>' +
+    '· "我是XX专业大X，每周X小时，推荐什么比赛？"<br>' +
+    '· 具体某项赛事的时间/要求（挑战杯/创新大赛/蓝桥杯/数模/大广赛/大英赛）<br>' +
+    '· 四六级、计算机二级、期末复习规划<br><br>' +
+    '或者直接告诉我你的情况，我来帮你规划。',
+    refs: [] };
+}
+
+/* ---------- 意图分发 ---------- */
+function getResponse(text){
+  const intent = routeIntent(text);
+  switch (typeof intent === 'string' ? intent : intent.type) {
+    case 'greet': return respGreet();
+    case 'thanks': return respThanks();
+    case 'recommend': {
+      const known = [profile.grade, profile.major, profile.hours].filter(Boolean).length;
+      return known >= 2 ? fullRecommend() : askProfile();
+    }
+    case 'comp': return respComp(intent.comp);
+    case 'compare': return respCompare();
+    case 'material': return respMaterial(text);
+    case 'ghost': return respGhost();
+    case 'cet': return respCET();
+    case 'ncre': return respNCRE();
+    case 'review': return respReview();
+    case 'team': return respTeam();
+    case 'baoyan': return respBaoyan();
+    case 'conflict': return respConflict();
+    case 'defense': return respDefense();
+    case 'topic': return respTopic();
+    case 'promise': return respPromise();
+    case 'value': return respValue(text);
+    case 'unknownComp': return respUnknownComp();
+    default: return respFallback();
+  }
+}
+
+/* ---------- 渲染 ---------- */
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('input');
+const btnSend = document.getElementById('btnSend');
+let busy = false, skipFlag = false;
+
+function scrollBottom(){ messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+function makeMsg(role, html, refs){
+  const wrap = document.createElement('div');
+  if (role === 'system') {
+    wrap.className = 'msg system';
+    wrap.innerHTML = '<div class="sysnote">' + html + '</div>';
+    messagesEl.appendChild(wrap);
+    return wrap;
+  }
+  wrap.className = 'msg ' + (role === 'user' ? 'user' : 'assistant');
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar ' + (role === 'user' ? 'user' : 'bot');
+  avatar.textContent = role === 'user' ? '我' : '学';
+  const bw = document.createElement('div');
+  bw.className = 'bubble-wrap';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = html;
+  bw.appendChild(bubble);
+  if (role === 'assistant' && refs && refs.length) {
+    const rf = document.createElement('div');
+    rf.className = 'refs';
+    rf.innerHTML = refs.map(r => '<span class="ref-chip">📚 ' + r + '</span>').join('');
+    bw.appendChild(rf);
+  }
+  wrap.appendChild(avatar);
+  wrap.appendChild(bw);
+  messagesEl.appendChild(wrap);
+  scrollBottom();
+  return { wrap, bubble };
+}
+
+function pushHistory(role, html, refs){ history.push({ role, html, refs: refs || [] }); persist(); }
+
+function addUserMsg(text){
+  makeMsg('user', esc(text), null);
+  pushHistory('user', esc(text), null);
+}
+
+function addSys(html){
+  makeMsg('system', html, null);
+  pushHistory('system', html, null);
+}
+
+function tokenize(html){
+  const tokens = []; let i = 0;
+  while (i < html.length) {
+    if (html[i] === '<') {
+      const j = html.indexOf('>', i);
+      if (j === -1) { tokens.push(html.slice(i)); break; }
+      tokens.push(html.slice(i, j + 1)); i = j + 1;
+    } else { tokens.push(html.slice(i, i + 4)); i += 4; }
+  }
+  return tokens;
+}
+
+async function typeHTML(el, html){
+  skipFlag = false;
+  const tokens = tokenize(html); let acc = '';
+  for (const t of tokens) {
+    if (skipFlag) break;
+    acc += t; el.innerHTML = acc; scrollBottom();
+    await sleep(t.startsWith('<') ? 0 : 16);
+  }
+  el.innerHTML = html; scrollBottom();
+}
+
+let typingEl = null;
+function showTyping(){
+  typingEl = document.createElement('div');
+  typingEl.className = 'msg assistant';
+  typingEl.innerHTML = '<div class="avatar bot">学</div><div class="bubble-wrap"><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div></div>';
+  messagesEl.appendChild(typingEl);
+  scrollBottom();
+}
+function hideTyping(){ if (typingEl) { typingEl.remove(); typingEl = null; } }
+
+async function assistantReply(html, refs){
+  busy = true; btnSend.disabled = true; inputEl.disabled = true;
+  showTyping();
+  await sleep(450 + Math.random() * 400);
+  hideTyping();
+  pushHistory('assistant', html, refs);
+  const { bubble } = makeMsg('assistant', '', refs);
+  await typeHTML(bubble, html);
+  busy = false; btnSend.disabled = false; inputEl.disabled = false; inputEl.focus();
+}
+
+/* ---------- 画像侧栏 ---------- */
+function renderProfile(){
+  const set = (id, v) => {
+    const el = document.getElementById(id);
+    el.textContent = v || '待补充';
+    el.className = v ? '' : 'empty';
+  };
+  set('pGrade', profile.grade);
+  set('pMajor', profile.major);
+  set('pHours', profile.hours ? profile.hours + ' 小时' : (profile.hours === 0 ? '0' : null));
+  set('pStrength', profile.strengths);
+}
+function profileSummary(){
+  return [profile.grade, profile.major, profile.hours ? '每周' + profile.hours + '小时' : null].filter(Boolean).join(' · ');
+}
+
+/* ---------- 发送 ---------- */
+function send(text){
+  text = (text || '').trim();
+  if (!text || busy) return;
+  inputEl.value = '';
+  addUserMsg(text);
+
+  if (!activated) {
+    activated = true;
+    addSys('⚡ <b>已自动激活技能</b>：大学生学业&竞赛规划助手 · 触发词命中 · 检索知识库（4份文档已挂载）');
+  }
+
+  const changes = detectProfile(text);
+  if (changes.length) {
+    renderProfile();
+    addSys('🧠 已更新学生画像：<b>' + (profileSummary() || '—') + '</b>（后续对话持续记忆）');
+  }
+
+  const resp = getResponse(text);
+  assistantReply(resp.html, resp.refs);
+}
+
+btnSend.addEventListener('click', () => send(inputEl.value));
+inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') send(inputEl.value); });
+messagesEl.addEventListener('click', () => { skipFlag = true; });
+
+/* ---------- 演示提问 ---------- */
+function renderQuick(){
+  const box = document.getElementById('quickList');
+  QUICK.forEach(q => {
+    const b = document.createElement('button');
+    b.className = 'qbtn';
+    b.innerHTML = '<span class="qlabel">' + q.label + '</span>' + esc(q.text);
+    b.addEventListener('click', () => send(q.text));
+    box.appendChild(b);
+  });
+}
+
+/* ---------- 弹窗 ---------- */
+const profileModal = document.getElementById('profileModal');
+const aboutModal = document.getElementById('aboutModal');
+document.getElementById('btnAbout').addEventListener('click', () => aboutModal.classList.add('show'));
+document.getElementById('btnAboutClose').addEventListener('click', () => aboutModal.classList.remove('show'));
+aboutModal.addEventListener('click', e => { if (e.target === aboutModal) aboutModal.classList.remove('show'); });
+
+document.getElementById('btnEditProfile').addEventListener('click', () => {
+  document.getElementById('selGrade').value = profile.grade || '';
+  const catMap = { '计算机类':'cs','电子/工科类':'ee','数学/统计类':'math','艺术设计类':'design','经管商科类':'business','人文社科类':'liberal','农林生医类':'agro' };
+  document.getElementById('selMajor').value = catMap[profile.major] || (profile.majorCat || '');
+  const hMap = h => h === null || h === undefined ? '' : (h < 5 ? '3' : (h <= 10 ? '8' : '12'));
+  document.getElementById('selHours').value = hMap(profile.hours);
+  document.getElementById('inpStrength').value = profile.strengths || '';
+  profileModal.classList.add('show');
+});
+document.getElementById('btnProfileCancel').addEventListener('click', () => profileModal.classList.remove('show'));
+document.getElementById('btnProfileSave').addEventListener('click', () => {
+  const nameMap = { cs:'计算机类', ee:'电子/工科类', math:'数学/统计类', design:'艺术设计类', business:'经管商科类', liberal:'人文社科类', agro:'农林生医类', general:'其他' };
+  profile.grade = document.getElementById('selGrade').value || null;
+  profile.majorCat = document.getElementById('selMajor').value || null;
+  profile.major = profile.majorCat ? (nameMap[profile.majorCat] || null) : null;
+  const hv = document.getElementById('selHours').value;
+  profile.hours = hv === '' ? null : parseInt(hv, 10);
+  const st = document.getElementById('inpStrength').value.trim();
+  profile.strengths = st || null;
+  renderProfile(); persist();
+  profileModal.classList.remove('show');
+  addSys('🧠 学生画像已更新：<b>' + (profileSummary() || '—') + '</b>');
+});
+
+/* ---------- 重置 ---------- */
+document.getElementById('btnReset').addEventListener('click', () => {
+  localStorage.removeItem(LS_CHAT); localStorage.removeItem(LS_PROFILE); localStorage.removeItem(LS_ACT);
+  location.reload();
+});
+
+/* ---------- 初始化 ---------- */
+function renderHistory(){
+  history.forEach(m => makeMsg(m.role, m.html, m.refs));
+}
+function introMsg(){
+  const html = '你好！我是<b>大学生学业&竞赛规划助手</b>——按你的年级、专业、每周可投入时间匹配竞赛，制定可落地的备赛时间线。<br><br>' +
+    '📋 左侧可选择<b>演示提问</b>（含3个录屏场景），或直接输入你的情况，例如：<br>"我是计算机专业大一，每周能挤6小时"<br><br>' +
+    '⚠️ 仅提供规划建议；赛事规则与时间以官方通知为准；不代写完整申报材料。';
+  pushHistory('assistant', html, ['04-高频问答样例库']);
+  makeMsg('assistant', html, ['04-高频问答样例库']);
+}
+
+renderQuick();
+renderProfile();
+renderHistory();
+if (!history.length) introMsg();
+scrollBottom();
+inputEl.focus();
+</script>
+</body>
+</html>
